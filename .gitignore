@@ -1,0 +1,30 @@
+# Dependencies
+  node_modules/
+
+  # Database (contains user data — never push this)
+  database/*.db
+  database/*.db-wal
+  database/*.db-shm
+
+  # Uploaded files (user uploads — keep them local)
+  uploads/*
+  !uploads/.gitkeep
+
+  # Export files
+  exports/*
+  !exports/.gitkeep
+
+  # Environment variables
+  .env
+
+  # OS files
+  .DS_Store
+  Thumbs.db
+
+  # IDE files
+  .vscode/
+  .idea/
+
+  # Logs
+  *.log
+  npm-debug.log*

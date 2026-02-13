@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CTF Platform</title>
+    <link rel="stylesheet" href="/css/style.css?v=17">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="app">
+        <!-- Navigation -->
+        <nav class="navbar" id="navbar">
+            <div class="nav-brand">
+                <a href="/" onclick="navigate('home'); return false;">
+                    <span class="brand-text">CTF</span>
+                    <span class="brand-underscore">_</span>
+                </a>
+            </div>
+            <div class="nav-links" id="nav-links">
+                <a href="/users" onclick="navigate('users'); return false;">Users</a>
+                <a href="/teams" onclick="navigate('teams'); return false;">Teams</a>
+                <a href="/scoreboard" onclick="navigate('scoreboard'); return false;">Scoreboard</a>
+                <a href="/challenges" onclick="navigate('challenges'); return false;">Challenges</a>
+            </div>
+            <div class="nav-auth" id="nav-auth">
+                <!-- Dynamic content -->
+            </div>
+            <button class="nav-toggle" onclick="toggleMobileNav()">☰</button>
+        </nav>
+
+        <!-- Fixed Right Side Timer -->
+        <div id="fixed-timer" class="fixed-timer" style="display: none;">
+            <!-- Timer content injected by JS -->
+        </div>
+
+        <!-- Main Content -->
+        <main id="main-content">
+            <!-- Dynamic content -->
+        </main>
+
+        <!-- Toast notifications -->
+        <div id="toast-container"></div>
+    </div>
+
+    <script src="/js/app.js?v=17"></script>
+</body>
+</html>
