@@ -1,4 +1,4 @@
-# 🚩 CYkrypt CTF Platform
+# 🚩 CTF Platform
 
 A full-featured, self-hosted Capture The Flag (CTF) competition platform built with Node.js, Express, and SQLite.
 
@@ -18,8 +18,6 @@ A full-featured, self-hosted Capture The Flag (CTF) competition platform built w
 - **Wave System** — Release challenges in groups (Wave 1, Wave 2, etc.) for staged competitions
 - **Timer System** — Opening countdown, running timer, and ending display with style customization
 - **Data Management** — JSON import/export, CSV download, database refresh between events
-
-> See [features.txt](features.txt) for a complete feature breakdown.
 
 ---
 
@@ -44,7 +42,7 @@ sudo apt install -y nodejs
 sudo apt install -y build-essential python3
 
 # 3. Clone the repository
-git clone https://github.com/YOUR_USERNAME/ctf-platform.git
+git clone https://github.com/Ragul0812/CTF-PLATFORM.git
 cd ctf-platform
 
 # 4. Install dependencies
@@ -54,7 +52,7 @@ npm install
 npm start
 ```
 
-Open your browser: **http://localhost:3000**
+Open your browser: **http://localhost:8080**
 
 ---
 
@@ -69,13 +67,15 @@ Open your browser: **http://localhost:3000**
 
 2. **Clone and run**
    ```cmd
-   git clone https://github.com/YOUR_USERNAME/ctf-platform.git
+   git clone https://github.com/Ragul0812/CTF-PLATFORM.git
    cd ctf-platform
+   Remove-Item -Recurse -Force node_modules
+   Remove-Item package-lock.json
    npm install
    npm start
    ```
 
-3. Open your browser: **http://localhost:3000**
+3. Open your browser: **http://localhost:8080**
 
 #### Option B: Using WSL (Recommended for Windows)
 
@@ -115,7 +115,7 @@ npm install --build-from-source better-sqlite3
 
 > ⚠️ **Change these immediately** after first login via Admin Panel > Settings > Admin Credentials.
 
-Admin panel: **http://localhost:3000/admin**
+Admin panel: **http://localhost:8080/admin**
 
 ---
 

@@ -1,0 +1,576 @@
+================================================================================
+                    CTF PLATFORM — COMPLETE FEATURES OVERVIEW
+                           CYkrypt CTF Platform v2.0
+================================================================================
+
+A comprehensive, self-hosted Capture The Flag (CTF) competition platform built
+with Node.js, Express, SQLite, and a vanilla JavaScript single-page application
+(SPA) frontend. Designed for cybersecurity events, hackathons, and training.
+
+
+================================================================================
+1. AUTHENTICATION & USER MANAGEMENT
+================================================================================
+
+  1.1  User Registration
+       - Username (3-30 chars, alphanumeric + underscores), email, password
+       - Rate-limited: max 10 registrations per hour per IP
+       - Registration can be opened/closed by admin at any time
+       - Optional email verification requirement (configurable)
+
+  1.2  Login / Logout
+       - Session-based authentication with server-side storage
+       - Brute-force protection: max 40 login attempts per 15 minutes
+       - Session cookies: HTTPOnly, Secure, SameSite
+       - Automatic session persistence across page reloads
+
+  1.3  Email Verification
+       - Sends verification link to user's email on registration
+       - Token-based verification via unique URL
+       - Admin can toggle verification requirement on/off
+       - Unverified users shown with "Unverified" badge in admin
+
+  1.4  Password Reset
+       - "Forgot Password" flow with email-based reset link
+       - Secure token generation with expiry
+       - Standalone reset password page within the SPA
+       - Generic response to prevent email enumeration attacks
+
+  1.5  User Profiles
+       - Customizable bio, country, website, GitHub, Twitter fields
+       - Avatar upload (max 5MB, images only) with delete option
+       - Solve history with timestamps
+       - Score timeline chart (visual graph of points over time)
+       - Rank display (#1, #2, etc.) based on live scoreboard position
+       - Team information and link
+
+  1.6  Account Management
+       - Account deletion with password confirmation
+       - Profile editing by user
+       - Admin can edit any user's score, ban/unban, delete, change password
+       - Admin can hide/unhide user profiles from public listings
+
+  1.7  User Banning
+       - Banned users cannot view challenges or submit flags
+       - Banned users' scores are excluded from their team's scoreboard total
+       - Ban/unban checked in real-time against database (not just session)
+       - Team ban cascades — banning a team blocks all its members
+
+
+================================================================================
+2. TEAM SYSTEM
+================================================================================
+
+  2.1  Team Creation
+       - Any user can create a team with a unique name
+       - Auto-generated invite code for team joining
+       - Creator becomes team captain
+
+  2.2  Team Joining
+       - Join via invite code (shared by captain)
+       - Configurable maximum team size (default: 4 members)
+       - Play mode enforcement: admin can require team membership
+
+  2.3  Team Management (Captain)
+       - Transfer captaincy to another member
+       - Kick members from team
+       - Regenerate invite code for security
+       - Delete team (removes all members from team)
+       - Team avatar upload
+
+  2.4  Team Profiles
+       - Member list with individual scores
+       - Team rank on scoreboard (with admin on/off toggle)
+       - Team score (sum of non-banned members' scores)
+       - Solve history and statistics
+       - Score timeline chart
+
+  2.5  Team Administration (Admin)
+       - View all teams with member counts, scores, invite codes
+       - Search teams by name or invite code
+       - Ban/unban entire teams
+       - Delete teams
+       - Edit team scores
+       - Empty team detection and bulk cleanup
+
+  2.6  Capacity
+       - No hard limit on number of teams
+       - No hard limit on number of users per team (beyond max_team_size config)
+       - SQLite with WAL mode handles concurrent operations efficiently
+
+
+================================================================================
+3. CHALLENGE SYSTEM
+================================================================================
+
+  3.1  Challenge Creation (Admin)
+       - Title, description, category, points, flag
+       - Categories: Web, Crypto, Forensics, Pwn, Reversing, Misc, OSINT
+       - Custom categories can be added via config
+       - Author attribution field
+
+  3.2  Challenge Files
+       - Primary file upload (any supported format)
+       - Multiple extra files with labels (add/remove dynamically)
+       - Supported formats: images (.jpg, .jpeg, .png, .gif, .svg, .webp, .bmp,
+         .tiff, .heic, .avif), documents (.pdf, .doc, .docx, .pptx, .xlsx),
+         archives (.zip, .tar, .gz, .7z, .rar), code (.py, .c, .cpp, .js, .html,
+         .css, .rb, .java, .go, .rs, .sh, .bat, .ps1), data (.json, .xml, .csv,
+         .pcap, .pcapng), binaries (.bin, .elf, .exe), text (.txt, .md)
+       - Maximum file size: 1GB per file
+       - S3 storage support (optional, for large-scale deployments)
+
+  3.3  Challenge Links
+       - Primary external URL
+       - Multiple extra links with labels (add/remove dynamically)
+       - Links shown in challenge detail modal
+
+  3.4  Flag Submission
+       - Exact string match verification
+       - Rate-limited: max 10 flag submissions per minute
+       - Attempt tracking per user per challenge
+       - Configurable max attempts per challenge (0 = unlimited)
+       - Correct/incorrect submission logging with timestamps
+       - IP address logging for all submissions
+
+  3.5  Hints
+       - Optional hint text per challenge
+       - Point cost to unlock hint (deducted from user's score)
+       - Hint unlock tracked per user — no double charging
+       - Hint visible only after unlocking
+
+  3.6  Challenge Ratings
+       - Users can rate challenges 1-5 stars after solving
+       - Average rating displayed on challenge card
+       - One rating per user per challenge
+
+  3.7  Challenge Visibility Controls
+       - Individual hidden toggle (admin can hide/show any challenge)
+       - Wave-based group visibility (see Section 4)
+       - Show flag after solve toggle (reveal the flag text to solver)
+
+  3.8  Solve Tracking
+       - Solve count displayed on challenge card
+       - First solver highlighted (first blood)
+       - User solvers list and team solvers list
+       - Solve timestamps recorded
+
+
+================================================================================
+4. WAVE SYSTEM (Phased Challenge Release)
+================================================================================
+
+  4.1  Overview
+       - Waves allow admin to group challenges and reveal them in phases
+       - Example: Wave 1 = easy challenges, Wave 2 = medium, Wave 3 = hard
+       - Admin can toggle individual waves ON/OFF at any time
+
+  4.2  How It Works
+       - Admin creates numbered waves (Wave 0, Wave 1, Wave 2, etc.)
+       - Each challenge is assigned to a wave (or left as "No Wave")
+       - When waves are configured:
+         * ONLY challenges whose wave is toggled ON are visible to users
+         * "No Wave" challenges are NOT visible unless explicitly assigned to
+           an active wave
+         * This gives admin full control over which challenges appear
+       - When NO waves are configured: all non-hidden challenges are visible
+       - Individual challenge "Hidden" toggle still takes priority over waves
+
+  4.3  Admin Interface
+       - Dedicated "Waves" tab in admin panel
+       - Add/remove wave numbers
+       - Toggle checkboxes to activate/deactivate each wave
+       - Challenge count shown per wave
+       - Challenge wave assignment table with dropdown selectors
+       - Status badges: Visible / Wave Off / Hidden
+
+  4.4  Use Cases
+       - Gradual difficulty increase during event
+       - Time-based challenge releases (manually triggered)
+       - Category-based reveals (e.g., reveal all Crypto at once)
+       - Surprise challenge drops mid-event
+
+
+================================================================================
+5. SCOREBOARD
+================================================================================
+
+  5.1  Team Scoreboard
+       - Ranked by score, tie-broken by earliest last solve
+       - Paginated (20 entries per page)
+       - Shows team name, score, member count, last solve time
+       - Excludes hidden teams and banned teams
+       - Team score computed in real-time excluding banned members' contributions
+
+  5.2  User Scoreboard
+       - Individual user rankings
+       - Excludes hidden users, admins, and banned users
+       - Shows username, score, team name, last solve time
+
+  5.3  Score Freeze
+       - Admin sets a freeze time (e.g., 30 minutes before CTF ends)
+       - After freeze: scoreboard shows scores as of freeze time
+       - Submissions still accepted and tracked internally
+       - "Scores Frozen" indicator shown to users
+
+  5.4  Scoreboard Visibility
+       - Admin can hide entire scoreboard from participants
+       - Admin always sees the scoreboard regardless of setting
+       - Option to hide scores from non-logged-in users
+
+  5.5  Score Graphs
+       - Top 10 teams/users line chart showing score progression over time
+       - Each team's solve timeline plotted as cumulative score
+       - Excludes banned members' contributions from graph data
+
+  5.6  Rank Display
+       - User/team profiles show scoreboard rank (#1, #2, etc.)
+       - Admin toggle: show/hide rank on profiles (Settings > Rank Display)
+
+  5.7  Data Export
+       - CSV download: users, teams, or scoreboard data
+       - Available from admin dashboard
+
+
+================================================================================
+6. ADMIN PANEL
+================================================================================
+
+  6.1  Dashboard
+       - Total users, teams, challenges count
+       - Total submissions (correct + incorrect breakdown)
+       - Banned users/teams count
+       - Score graph for top teams
+       - CSV export buttons (users, teams, scoreboard)
+
+  6.2  User Management
+       - Full user list with search (by name, email, or team)
+       - Edit user scores
+       - Ban/unban users (real-time enforcement)
+       - Delete users
+       - Change user passwords
+       - View user details and submission history
+
+  6.3  Team Management
+       - Full team list with search (by name or invite code)
+       - View team members and details
+       - Ban/unban teams
+       - Delete teams (including empty team detection)
+       - Edit team scores
+       - Bulk delete empty teams
+
+  6.4  Challenge Management
+       - Create/edit/delete challenges
+       - Multiple file uploads with labels
+       - Multiple external links with labels
+       - Wave assignment per challenge
+       - Hidden/visible toggle
+       - Show flag toggle
+       - File upload with drag-and-drop support
+
+  6.5  Wave Management
+       - Add/remove waves (Wave 0, 1, 2, ...)
+       - Toggle individual waves on/off
+       - Challenge count per wave
+       - Quick wave assignment table
+       - Status badges showing visibility state
+
+  6.6  Notifications
+       - Create global announcements
+       - Create user-specific notifications
+       - Notification types: info, warning, error, success
+       - Delete notifications
+       - Users see badge counter in navbar
+
+  6.7  Branding
+       - CTF name, description, hero title, subtitle
+       - Logo upload/delete
+       - Discord link, website URL
+       - Footer text customization
+       - Logo position (left/right of text)
+
+  6.8  Theme Customization
+       - 9 preset themes: Cyber Green, Hacker Blue, Purple Night, Orange Fire,
+         Blood Red, Gold Elite, Matrix, Synthwave, Glassmorphism
+       - Glassmorphism theme with customizable accent, background, and text colors
+         (frosted glass effect with backdrop-filter blur)
+       - Custom color picker for all theme variables:
+         Accent, Background Primary/Secondary, Card Background,
+         Text Primary/Secondary, Danger color
+       - Live preview before saving
+       - Reset to default option
+
+  6.9  Page Editor
+       - Custom pages with slug-based URLs
+       - Markdown content support
+       - Publish/unpublish pages
+       - Home page custom HTML
+       - Challenges page custom HTML
+
+  6.10 Event Pages
+       - Opening page with terminal animation (typing effect, ASCII art,
+         glitch background, typing sound)
+       - Design transition (terminal → matrix rain with glitch title)
+       - Ending page selection (10 designs provided in ending_pages.txt)
+       - Opening timer visibility delay control
+
+  6.11 Timer System
+       - Opening Timer: countdown to CTF start
+         * Configurable start datetime
+         * Color, background, font size, style customization
+         * Styles: Digital, Minimal, Neon, Matrix
+         * Visibility delay control (seconds before timer appears)
+       - Running Timer: CTF duration countdown
+         * Configurable end datetime
+         * Independent style customization
+       - Ending Timer: post-event display
+
+  6.12 Configuration / Settings
+       - Registration open/close toggle
+       - Email verification requirement toggle
+       - Login required for challenges toggle
+       - Play mode: individual or team-required
+       - Max team members
+       - Challenge flag format hint
+       - Scoreboard visibility toggle
+       - Challenges visibility toggle
+       - Rank display toggle
+       - Score freeze time
+       - Admin credential update (username + password)
+       - Database management (import/export/refresh)
+
+  6.13 Email Configuration
+       - SMTP provider settings (host, port, username, password)
+       - Auto SSL/TLS detection (port 465 = SSL, 587 = STARTTLS)
+       - Test email button
+       - Custom email templates with placeholders:
+         {{CTF_NAME}}, {{USERNAME}}, {{ACTION_URL}}, {{ACTION_LABEL}}
+       - Template editor with upload, preview, and reset
+       - Bulk email: send to all users, verified users, or custom list
+
+  6.14 Custom Code Injection
+       - Custom CSS (injected into every page)
+       - Custom JavaScript (injected into every page)
+       - Custom HTML in <head> and footer
+
+  6.15 Data Management
+       - JSON export: full database backup
+       - JSON import: restore from backup
+       - CSV export: users, teams, scoreboard
+       - Database refresh: clear event data (users, teams, submissions)
+         while preserving challenges, admin account, and all settings
+       - Useful for running multiple events without reconfiguring
+
+  6.16 Audit Logging
+       - Admin actions logged with timestamps
+       - Tracks config changes, user modifications, etc.
+
+
+================================================================================
+7. SECURITY FEATURES
+================================================================================
+
+  7.1  HTTP Security Headers (Helmet.js)
+       - Content-Security-Policy (CSP)
+       - X-Content-Type-Options: nosniff
+       - X-Frame-Options: DENY
+       - X-XSS-Protection
+       - Strict-Transport-Security (HSTS)
+       - Referrer-Policy
+
+  7.2  Rate Limiting
+       - API requests: 200 per minute per IP
+       - Flag submissions: 10 per minute per IP
+       - Registration: 10 per hour per IP
+       - Login attempts: 40 per 15 minutes per IP
+       - DDoS protection: 500 requests per 10 seconds per IP
+
+  7.3  Authentication Security
+       - Password hashing: bcrypt with 12 salt rounds
+       - Session cookies: HTTPOnly, Secure, SameSite=Strict
+       - Session secret rotation support
+       - Secure token generation for email verification/reset
+
+  7.4  Input Validation & Sanitization
+       - SQL injection prevention: prepared statements throughout
+       - HTML escaping for all user-generated content
+       - File type validation for uploads
+       - File size limits enforced server-side and client-side
+       - Username/email format validation
+
+  7.5  Access Control
+       - Admin-only routes protected by middleware
+       - Admin-only settings hidden from public config API
+       - Sensitive config keys (SMTP password, S3 keys) never exposed
+       - Banned user real-time check against database on every request
+       - Team ban enforcement
+
+  7.6  Data Protection
+       - Email enumeration prevention (forgot password returns generic response)
+       - IP address logging for submissions (forensic capability)
+       - Password not stored in session data
+       - Config API strips sensitive keys for non-admin requests
+
+
+================================================================================
+8. EMAIL SYSTEM
+================================================================================
+
+  8.1  Provider Support
+       - Generic SMTP (Gmail, Outlook, Yahoo, custom mail servers)
+       - Mailgun API integration
+       - From address customization
+
+  8.2  Automatic Emails
+       - Verification email on registration (when enabled)
+       - Password reset email on request
+       - Customizable templates with variable substitution
+
+  8.3  Admin Email Features
+       - Send test email to verify configuration
+       - Custom email template editor (HTML)
+       - Upload template files
+       - Preview templates before saving
+       - Reset to default template
+       - Bulk broadcast: send to all users, verified users, or specific list
+
+  8.4  SMTP Configuration
+       - Host, port, username (full email address), password
+       - Auto SSL detection: port 465 uses SSL, port 587 uses STARTTLS
+       - TLS rejectUnauthorized: false for compatibility
+       - Detailed error logging for troubleshooting
+
+
+================================================================================
+9. FRONTEND / USER EXPERIENCE
+================================================================================
+
+  9.1  Single Page Application (SPA)
+       - No full page reloads — smooth navigation
+       - History API for clean URLs (/challenges, /scoreboard, etc.)
+       - All pages rendered client-side via JavaScript
+
+  9.2  Responsive Design
+       - Mobile-friendly layout
+       - Adaptive grids and tables
+       - Touch-friendly navigation
+
+  9.3  Visual Features
+       - Dark theme with customizable color palette
+       - Animated opening page (terminal typing + matrix rain)
+       - Glitch text effects
+       - Canvas-based animated backgrounds
+       - Typing sound effects (Web Audio API)
+       - Toast notifications for user actions
+       - Modal dialogs for challenge details
+       - Loading spinners and transitions
+
+  9.4  Navigation
+       - Top navbar with logo, links, user menu
+       - Admin sidebar navigation
+       - Breadcrumb-style page routing
+       - Notification badge with count
+
+  9.5  Challenge Interface
+       - Category-grouped challenge cards
+       - Challenge detail modal with description, files, links, hints
+       - Flag submission form within modal
+       - Star rating system
+       - Solve count and difficulty indicator
+       - File download buttons
+
+  9.6  Profile Pages
+       - User profile: avatar, bio, social links, solves, score graph
+       - Team profile: members, team stats, solve history, score graph
+       - Rank badge (configurable visibility)
+
+
+================================================================================
+10. DEPLOYMENT & HOSTING
+================================================================================
+
+  10.1 Server Requirements
+       - Node.js 18+ with npm
+       - No external database server (SQLite embedded)
+       - Python 3 + build tools (for better-sqlite3 compilation)
+       - Runs on Linux, Windows, macOS
+
+  10.2 Quick Start
+       - npm install && npm start
+       - Accessible at http://localhost:8080
+       - Default admin: admin / admin123
+
+  10.3 Production Deployment
+       - PM2 process manager for auto-restart
+       - Nginx reverse proxy (port 80/443 → 3000)
+       - Let's Encrypt SSL (free HTTPS)
+       - AWS EC2 deployment guide included
+       - Elastic IP for fixed public address
+
+  10.4 Configuration
+       - All settings via admin panel (no config files to edit)
+       - Environment variable support
+       - 0.0.0.0 binding (accepts all network interfaces)
+
+  10.5 Scalability
+       - SQLite with WAL mode (concurrent reads)
+       - Gzip compression for all responses
+       - Static file caching with cache-busting versioning
+       - Handles 200-500+ concurrent users on t2.medium instance
+
+
+================================================================================
+11. DATA MANAGEMENT
+================================================================================
+
+  11.1 Database
+       - SQLite with Write-Ahead Logging (WAL) mode
+       - Auto-migration system for schema updates
+       - 13 tables: users, teams, challenges, submissions, challenge_attempts,
+         hint_unlocks, config, notifications, custom_code, pages, audit_log,
+         challenge_ratings, sqlite_sequence
+
+  11.2 Import/Export
+       - Full JSON export (all tables)
+       - JSON import with data restoration
+       - CSV download for users, teams, scoreboard
+       - Database refresh for new events (preserves challenges + settings)
+
+  11.3 File Storage
+       - Local file system (default)
+       - AWS S3 compatible storage (optional)
+       - Organized upload directory
+       - File deletion support
+
+
+================================================================================
+12. CAPACITY & PERFORMANCE
+================================================================================
+
+  - Users:          No hard limit (tested with 1000+)
+  - Teams:          No hard limit
+  - Challenges:     No hard limit
+  - File uploads:   Up to 1GB per file
+  - Concurrent:     50-100 users on t2.micro, 200-500+ on t2.medium
+  - Database:       SQLite handles ~100K+ rows efficiently
+  - Response time:  <100ms for most API calls
+  - Compression:    Gzip enabled for all responses
+
+
+================================================================================
+13. TECH STACK
+================================================================================
+
+  Backend:    Node.js 18+ / Express.js 4.x
+  Database:   SQLite 3 (via better-sqlite3)
+  Auth:       bcryptjs + express-session
+  Email:      Nodemailer (SMTP) / Mailgun API
+  Security:   Helmet.js, express-rate-limit, custom DDoS middleware
+  Upload:     Multer (local) / AWS S3 SDK (optional)
+  Frontend:   Vanilla JavaScript SPA, CSS3, HTML5 Canvas
+  Server:     PM2 (production), Nginx (reverse proxy)
+
+
+================================================================================
+                              END OF FEATURES
+================================================================================
