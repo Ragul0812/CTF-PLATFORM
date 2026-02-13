@@ -59,8 +59,8 @@ Open your browser: **http://localhost:8080**
 
 #### Option A: Direct Install
 
-1. **Install Node.js 18+**
-   - Download from [https://nodejs.org](https://nodejs.org)
+1. **Install Node.js 
+   - Download from [https://nodejs.org/dist/v20.20.0/node-v20.20.0-x64.msi](https://nodejs.org)
    - Run the installer — check "Automatically install necessary tools" when prompted
    - This installs Node.js, npm, and build tools (Python, Visual Studio Build Tools)
 
@@ -72,9 +72,6 @@ Open your browser: **http://localhost:8080**
    cd CTF-PLATFORM
    ```
    ```cmd
-   Remove-Item -Recurse -Force node_modules
-   ```
-   ```cmd
    Remove-Item package-lock.json
    ```
    ```cmd
@@ -83,6 +80,8 @@ Open your browser: **http://localhost:8080**
    ```cmd
    npm start
    ```
+   If any warning is shown,ignore it and proceed with npm start.
+   [Recommended] Node version - v20.20.0(LTS) works fine
 
 3. Open your browser: **http://localhost:8080**
 
