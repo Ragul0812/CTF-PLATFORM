@@ -3,7 +3,6 @@
 A full-featured, self-hosted Capture The Flag (CTF) competition platform built with Node.js, Express, and SQLite.
 
 ![Node.js](https://img.shields.io/badge/Node.js-18+-green)
-![License](https://img.shields.io/badge/License-MIT-blue)
 ![Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20Windows-lightgrey)
 
 ## ✨ Features
@@ -60,18 +59,23 @@ Open your browser: **http://localhost:8080**
 
 #### Option A: Direct Install
 
-1. **Install Node.js 18+**
-   - Download from [https://nodejs.org](https://nodejs.org)
+1. **Install Node.js 18+[Node.js 18 LTS (Recommended)]**
+   - Download from [https://nodejs.org](https://nodejs.org),⚠️ Node 20 may cause native module issues.
+Use Node 18 LTS for stability.
    - Run the installer — check "Automatically install necessary tools" when prompted
    - This installs Node.js, npm, and build tools (Python, Visual Studio Build Tools)
 
 2. **Clone and run**
    ```cmd
    git clone https://github.com/Ragul0812/CTF-PLATFORM.git
+   ```
+   ```cmd
    cd ctf-platform
-   Remove-Item -Recurse -Force node_modules
-   Remove-Item package-lock.json
+   ```
+   ```cmd
    npm install
+   ```
+   ```cmd
    npm start
    ```
 
@@ -162,7 +166,7 @@ All configuration is done through the **Admin Panel** (no config files to edit):
 | Waves | Admin > Waves |
 | Scoreboard | Admin > Settings > Scoreboard |
 | Registration | Admin > Settings |
-| Custom Pages | Admin > Pages |
+| Custom Pages | Admin > Page Editor/Event pages |
 
 ---
 
@@ -221,10 +225,25 @@ pm2 startup
 
 ## 📝 License
 
-This project is open source and available under the [MIT License](LICENSE).
+This project is open source and available.
 
 ---
 
+##⚠️ Disclaimer
+
+This project is provided for educational and research purposes only.
+
+- The authors are not responsible for any misuse, damage, or legal consequences resulting from the use of this software.
+
+- Users are solely responsible for ensuring that they comply with local laws, regulations, and organizational policies when deploying or using this project.
+
+- This software should only be used in authorized environments, such as controlled labs, competitions, or systems where you have explicit permission.
+
+- No warranty is provided. The project is distributed “as is”, without any guarantees of performance, security, or reliability.
+
+By using this project, you agree that the developers and contributors shall not be held liable for any direct or indirect damages arising from its use.
+
+---
 ## 📞 Support
 
 - Open an issue on GitHub for bugs or feature requests
