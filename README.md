@@ -59,8 +59,9 @@ Open your browser: **http://localhost:8080**
 
 #### Option A: Direct Install
 
-1. **Install Node.js 
+1. **Install Node.js** 
    - Download from [https://nodejs.org/dist/v20.20.0/node-v20.20.0-x64.msi](https://nodejs.org)
+   - **(Recommended) Node version - v20.20.0(LTS) works fine**
    - Run the installer — check "Automatically install necessary tools" when prompted
    - This installs Node.js, npm, and build tools (Python, Visual Studio Build Tools)
 
