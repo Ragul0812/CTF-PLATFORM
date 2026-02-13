@@ -42,7 +42,7 @@ sudo apt install -y build-essential python3
 
 # 3. Clone the repository
 git clone https://github.com/Ragul0812/CTF-PLATFORM.git
-cd ctf-platform
+cd CTF-PLATFORM
 
 # 4. Install dependencies
 npm install
@@ -59,9 +59,8 @@ Open your browser: **http://localhost:8080**
 
 #### Option A: Direct Install
 
-1. **Install Node.js 18+[Node.js 18 LTS (Recommended)]**
-   - Download from [https://nodejs.org](https://nodejs.org),⚠️ Node 20 may cause native module issues.
-Use Node 18 LTS for stability.
+1. **Install Node.js 18+**
+   - Download from [https://nodejs.org](https://nodejs.org)
    - Run the installer — check "Automatically install necessary tools" when prompted
    - This installs Node.js, npm, and build tools (Python, Visual Studio Build Tools)
 
@@ -71,6 +70,12 @@ Use Node 18 LTS for stability.
    ```
    ```cmd
    cd CTF-PLATFORM
+   ```
+   ```cmd
+   Remove-Item -Recurse -Force node_modules
+   ```
+   ```cmd
+   Remove-Item package-lock.json
    ```
    ```cmd
    npm install
