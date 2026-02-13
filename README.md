@@ -82,7 +82,6 @@ Open your browser: **http://localhost:8080**
    npm start
    ```
    If any warning is shown,ignore it and proceed with npm start.
-   [Recommended] Node version - v20.20.0(LTS) works fine
 
 3. Open your browser: **http://localhost:8080**
 
