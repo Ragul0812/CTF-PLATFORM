@@ -70,7 +70,7 @@ Use Node 18 LTS for stability.
    git clone https://github.com/Ragul0812/CTF-PLATFORM.git
    ```
    ```cmd
-   cd ctf-platform
+   cd CTF-PLATFORM
    ```
    ```cmd
    npm install
@@ -229,7 +229,7 @@ This project is open source and available.
 
 ---
 
-##⚠️ Disclaimer
+## ⚠️ Disclaimer
 
 This project is provided for educational and research purposes only.
 
