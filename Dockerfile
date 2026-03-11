@@ -5,7 +5,7 @@ RUN apt-get update && apt-get install -y python3 build-essential && rm -rf /var/
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm install --production
+RUN npm ci --production
 
 COPY . .
 
