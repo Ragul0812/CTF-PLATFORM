@@ -195,6 +195,51 @@ pm2 startup
 
 ---
 
+## 🐳 Docker Deployment
+
+### Quick Start
+```bash
+docker compose up -d
+```
+
+### AWS EC2 Deployment
+
+1. **Launch an EC2 instance** (Ubuntu 22.04, t2.micro or higher)
+
+2. **SSH into your instance**
+```bash
+ssh -i your-key.pem ubuntu@your-ec2-ip
+```
+
+3. **Install Docker**
+```bash
+sudo apt update && sudo apt install -y docker.io docker-compose-v2
+sudo usermod -aG docker $USER
+# Log out and back in for group change to take effect
+```
+
+4. **Clone and run**
+```bash
+git clone https://github.com/Ragul0812/CTF-PLATFORM.git
+cd CTF-PLATFORM
+docker compose up -d
+```
+
+5. **Open port 8080** in your EC2 Security Group (Inbound Rules > Add Rule > Custom TCP > Port 8080 > Source 0.0.0.0/0)
+
+6. Access your platform: **http://your-ec2-ip:8080**
+
+### Docker Commands
+```bash
+docker compose up -d       # Start in background
+docker compose down        # Stop
+docker compose logs -f     # View logs
+docker compose restart     # Restart
+docker compose up -d --build  # Rebuild after code changes
+```
+
+---
+
 ## 📧 Email Setup
 
 1. Go to **Admin Panel > Settings > Email Configuration**

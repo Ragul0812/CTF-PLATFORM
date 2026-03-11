@@ -1,0 +1,14 @@
+services:
+  ctf-platform:
+    build: .
+    container_name: ctf-platform
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./database/ctf.db:/app/database/ctf.db
+      - ./uploads:/app/uploads
+      - ./exports:/app/exports
+    environment:
+      - NODE_ENV=production
+      - PORT=8080
+    restart: unless-stopped

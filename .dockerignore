@@ -1,0 +1,8 @@
+node_modules
+npm-debug.log
+.git
+.gitignore
+*.md
+database/ctf.db
+database/ctf.db-shm
+database/ctf.db-wal
