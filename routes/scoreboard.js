@@ -154,6 +154,19 @@ router.get('/top', checkScoreboardEnabled, checkScoreVisibility, (req, res) => {
     const { isFrozen, freezeTime } = getScoreFreezeData(db);
     
     if (type === 'users') {
+        if (isFrozen) {
+            const users = db.prepare(`
+                SELECT u.id, u.username,
+                       (SELECT COALESCE(SUM(c.points), 0) FROM submissions s 
+                        JOIN challenges c ON s.challenge_id = c.id 
+                        WHERE s.user_id = u.id AND s.is_correct = 1 AND s.submitted_at < ?) as score
+                FROM users u
+                WHERE u.is_hidden = 0 AND u.is_admin = 0 AND u.is_banned = 0
+                ORDER BY score DESC, u.id ASC
+                LIMIT 10
+            `).all(freezeTime).filter(u => u.score > 0);
+            return res.json({ entries: users, frozen: isFrozen });
+        }
         const users = db.prepare(`
             SELECT u.id, u.username, u.score
             FROM users u
@@ -165,6 +178,20 @@ router.get('/top', checkScoreboardEnabled, checkScoreVisibility, (req, res) => {
         return res.json({ entries: users, frozen: isFrozen });
     }
     
+    if (isFrozen) {
+        const teams = db.prepare(`
+            SELECT t.id, t.name,
+                   (SELECT COALESCE(SUM(c.points), 0) FROM submissions s 
+                    JOIN challenges c ON s.challenge_id = c.id 
+                    JOIN users u ON s.user_id = u.id
+                    WHERE s.team_id = t.id AND s.is_correct = 1 AND u.is_banned = 0 AND s.submitted_at < ?) as score
+            FROM teams t
+            WHERE t.is_hidden = 0 AND t.is_banned = 0
+            ORDER BY score DESC, t.id ASC
+            LIMIT 10
+        `).all(freezeTime).filter(t => t.score > 0);
+        return res.json({ entries: teams, frozen: isFrozen });
+    }
     const teams = db.prepare(`
         SELECT t.id, t.name,
                (SELECT COALESCE(SUM(c.points), 0) FROM submissions s 
@@ -186,18 +213,30 @@ router.get('/graph', checkScoreboardEnabled, checkScoreVisibility, (req, res) =>
     
     const { isFrozen, freezeTime } = getScoreFreezeData(db);
     
-    // Get top 10 teams (computed score excluding banned members)
-    const topTeams = db.prepare(`
-        SELECT t.id, t.name,
-               (SELECT COALESCE(SUM(c.points), 0) FROM submissions s 
-                JOIN challenges c ON s.challenge_id = c.id 
-                JOIN users u ON s.user_id = u.id
-                WHERE s.team_id = t.id AND s.is_correct = 1 AND u.is_banned = 0) as score
-        FROM teams t
-        WHERE t.is_hidden = 0 AND t.is_banned = 0
-        ORDER BY score DESC, t.id ASC
-        LIMIT 10
-    `).all();
+    // Get top 10 teams (computed score, respecting freeze time)
+    const topTeams = isFrozen
+        ? db.prepare(`
+            SELECT t.id, t.name,
+                   (SELECT COALESCE(SUM(c.points), 0) FROM submissions s 
+                    JOIN challenges c ON s.challenge_id = c.id 
+                    JOIN users u ON s.user_id = u.id
+                    WHERE s.team_id = t.id AND s.is_correct = 1 AND u.is_banned = 0 AND s.submitted_at < ?) as score
+            FROM teams t
+            WHERE t.is_hidden = 0 AND t.is_banned = 0
+            ORDER BY score DESC, t.id ASC
+            LIMIT 10
+        `).all(freezeTime)
+        : db.prepare(`
+            SELECT t.id, t.name,
+                   (SELECT COALESCE(SUM(c.points), 0) FROM submissions s 
+                    JOIN challenges c ON s.challenge_id = c.id 
+                    JOIN users u ON s.user_id = u.id
+                    WHERE s.team_id = t.id AND s.is_correct = 1 AND u.is_banned = 0) as score
+            FROM teams t
+            WHERE t.is_hidden = 0 AND t.is_banned = 0
+            ORDER BY score DESC, t.id ASC
+            LIMIT 10
+        `).all();
     
     // Get solve timeline for each team
     const graphData = topTeams.map(team => {

@@ -4197,7 +4197,16 @@ async function renderAdminRunningTimer(content) {
                 <div class="form-group">
                     <label class="form-label">Score Freeze Time (Optional)</label>
                     <input type="datetime-local" name="score_freeze_time" class="form-input" value="${config.score_freeze_time ? config.score_freeze_time.slice(0,16) : ''}">
-                    <small class="text-muted">Scoreboard freezes at this time (scores still recorded but hidden)</small>
+                    <small class="text-muted">Scoreboard freezes at this time — scores are still recorded but hidden from the public scoreboard.</small>
+                    ${config.score_freeze_time ? `
+                        <div style="margin-top: 0.75rem; padding: 0.75rem 1rem; border-radius: 8px; display: flex; align-items: center; gap: 0.5rem; ${new Date() > new Date(config.score_freeze_time) ? 'background: rgba(100,149,237,0.15); border: 1px solid #6495ed;' : 'background: rgba(255,165,2,0.1); border: 1px solid rgba(255,165,2,0.3);'}">
+                            <span style="font-size: 1.2rem;">${new Date() > new Date(config.score_freeze_time) ? '❄️' : '⏳'}</span>
+                            <span style="color: ${new Date() > new Date(config.score_freeze_time) ? '#6495ed' : '#ffa502'}; font-weight: 600; font-size: 0.85rem;">
+                                ${new Date() > new Date(config.score_freeze_time) ? 'Scoreboard is FROZEN since ' + formatDateTime(config.score_freeze_time) : 'Scoreboard will freeze at ' + formatDateTime(config.score_freeze_time)}
+                            </span>
+                            <button type="button" class="btn btn-ghost" style="margin-left: auto; font-size: 0.75rem; padding: 0.25rem 0.5rem;" onclick="document.querySelector('[name=score_freeze_time]').value=''; saveRunningEndTime();">✕ Clear</button>
+                        </div>
+                    ` : ''}
                 </div>
                 <button type="button" class="btn btn-primary" onclick="saveRunningEndTime()">💾 Save End Time</button>
             </form>
@@ -4396,11 +4405,9 @@ async function saveRunningEndTime() {
     
     try {
         const settings = {
-            ctf_end: endInput.value ? new Date(endInput.value).toISOString() : ''
+            ctf_end: endInput.value ? new Date(endInput.value).toISOString() : '',
+            score_freeze_time: freezeInput && freezeInput.value ? new Date(freezeInput.value).toISOString() : ''
         };
-        if (freezeInput && freezeInput.value) {
-            settings.score_freeze_time = new Date(freezeInput.value).toISOString();
-        }
         
         await api('/admin/config/bulk', {
             method: 'PUT',
@@ -4408,7 +4415,7 @@ async function saveRunningEndTime() {
         });
         await loadSiteConfig();
         showToast('Event end time saved!', 'success');
-        loadAdminSection('running-timer'); // Refresh
+        loadAdminSection('running-timer');
     } catch (err) {
         showToast(err.message, 'error');
     }
