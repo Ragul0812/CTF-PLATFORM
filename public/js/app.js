@@ -26,6 +26,29 @@ async function api(endpoint, options = {}) {
     return data;
 }
 
+// Sync clock with server using multiple samples for precision
+async function syncClock() {
+    let bestOffset = serverTimeOffset;
+    let bestRtt = Infinity;
+    const samples = 3;
+    for (let i = 0; i < samples; i++) {
+        try {
+            const t0 = Date.now();
+            const res = await fetch('/api/config');
+            const data = await res.json();
+            const t1 = Date.now();
+            if (data.server_time) {
+                const rtt = t1 - t0;
+                if (rtt < bestRtt) {
+                    bestRtt = rtt;
+                    bestOffset = new Date(data.server_time).getTime() + Math.round(rtt / 2) - t1;
+                }
+            }
+        } catch (e) { /* skip failed sample */ }
+    }
+    serverTimeOffset = bestOffset;
+}
+
 // Load and apply site configuration
 async function loadSiteConfig() {
     try {
@@ -40,6 +63,12 @@ async function loadSiteConfig() {
         applyTheme();
         applyBranding();
         applyCustomCode();
+        // Refine sync with multiple samples after initial load
+        syncClock();
+        // Periodic re-sync every 30 seconds
+        if (!window._syncInterval) {
+            window._syncInterval = setInterval(syncClock, 30000);
+        }
     } catch (err) {
         console.error('Failed to load config:', err);
     }
