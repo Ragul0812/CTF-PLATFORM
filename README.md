@@ -80,9 +80,6 @@ Open your browser: **http://localhost:8080**
    Remove-Item package-lock.json
    ```
    ```cmd
-   npm install nodemailer@latest
-   ```
-   ```cmd
    npm install
    ```
    ```cmd
