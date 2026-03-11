@@ -5,10 +5,15 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ./database/ctf.db:/app/database/ctf.db
-      - ./uploads:/app/uploads
-      - ./exports:/app/exports
+      - ctf-data:/app/database
+      - ctf-uploads:/app/uploads
+      - ctf-exports:/app/exports
     environment:
       - NODE_ENV=production
       - PORT=8080
     restart: unless-stopped
+
+volumes:
+  ctf-data:
+  ctf-uploads:
+  ctf-exports:
