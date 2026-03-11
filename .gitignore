@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+
+# Database files
+database/*.db
+database/*.db-wal
+database/*.db-shm
+*.db
+*.sqlite
+*.sqlite3
+*.db-wal
+*.db-shm
+
+# Uploaded files
+uploads/*
+!uploads/.gitkeep
+
+# Export files
+exports/*
+!exports/.gitkeep
+
+# Environment variables
+.env
+
+# Logs
+*.log
+npm-debug.log*
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
