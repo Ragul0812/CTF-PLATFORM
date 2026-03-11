@@ -3,6 +3,7 @@
 A full-featured, self-hosted Capture The Flag (CTF) competition platform built with Node.js, Express, and SQLite.
 
 ![Node.js](https://img.shields.io/badge/Node.js-18+-green)
+![Docker](https://img.shields.io/badge/Docker-Supported-blue)
 ![Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20Windows-lightgrey)
 
 ## ✨ Features
@@ -139,6 +140,9 @@ Admin panel: **http://localhost:8080/admin**
 ctf-platform/
 ├── server.js           # Express server entry point
 ├── package.json        # Dependencies and scripts
+├── Dockerfile          # Docker container configuration
+├── docker-compose.yml  # Docker Compose setup
+├── .dockerignore       # Files excluded from Docker build
 ├── database/
 │   └── db.js           # SQLite database setup & migrations
 ├── middleware/
@@ -197,10 +201,27 @@ pm2 startup
 
 ## 🐳 Docker Deployment
 
-### Quick Start
+### Prerequisites
+- **Docker** and **Docker Compose** installed
+
+### Quick Start (Linux/macOS/WSL)
 ```bash
-docker compose up -d
+git clone https://github.com/Ragul0812/CTF-PLATFORM.git
+cd CTF-PLATFORM
+docker compose up -d --build
 ```
+Open your browser: **http://localhost:8080**
+
+### Quick Start (Windows)
+1. Install and open **Docker Desktop** from [https://www.docker.com/products/docker-desktop/](https://www.docker.com/products/docker-desktop/)
+2. Wait until Docker Desktop shows "Running" (green icon in system tray)
+3. Open **PowerShell** and run:
+```powershell
+git clone https://github.com/Ragul0812/CTF-PLATFORM.git
+cd CTF-PLATFORM
+docker compose up -d --build
+```
+4. Open your browser: **http://localhost:8080**
 
 ### AWS EC2 Deployment
 
@@ -215,14 +236,14 @@ ssh -i your-key.pem ubuntu@your-ec2-ip
 ```bash
 sudo apt update && sudo apt install -y docker.io docker-compose-v2
 sudo usermod -aG docker $USER
-# Log out and back in for group change to take effect
 ```
+Log out and back in for the group change to take effect.
 
 4. **Clone and run**
 ```bash
 git clone https://github.com/Ragul0812/CTF-PLATFORM.git
 cd CTF-PLATFORM
-docker compose up -d
+docker compose up -d --build
 ```
 
 5. **Open port 8080** in your EC2 Security Group (Inbound Rules > Add Rule > Custom TCP > Port 8080 > Source 0.0.0.0/0)
@@ -231,11 +252,11 @@ docker compose up -d
 
 ### Docker Commands
 ```bash
-docker compose up -d       # Start in background
-docker compose down        # Stop
-docker compose logs -f     # View logs
-docker compose restart     # Restart
-docker compose up -d --build  # Rebuild after code changes
+docker compose up -d --build    # Build and start
+docker compose down             # Stop
+docker compose logs -f          # View logs
+docker compose restart          # Restart
+docker compose down && docker compose up -d --build  # Rebuild after code changes
 ```
 
 ---
