@@ -1374,7 +1374,7 @@ async function renderScoreboard(container) {
                 ${data.frozen ? `
                     <div class="frozen-indicator" style="background: linear-gradient(135deg, rgba(100,149,237,0.2), rgba(65,105,225,0.1)); border: 1px solid #6495ed; padding: 1rem; border-radius: 12px; text-align: center; margin-bottom: 1.5rem;">
                         <span style="font-size: 1.5rem;">❄️</span>
-                        <span style="color: #6495ed; font-weight: 600; margin-left: 0.5rem;">Scores frozen since ${formatDate(data.freeze_time)}</span>
+                        <span style="color: #6495ed; font-weight: 600; margin-left: 0.5rem;">Scoreboard is frozen${data.freeze_to ? ' until ' + formatDate(data.freeze_to) : ''}</span>
                     </div>
                 ` : ''}
                 
@@ -4194,19 +4194,47 @@ async function renderAdminRunningTimer(content) {
                     <button type="button" class="btn btn-ghost" onclick="setRunningQuickDuration('72h')">+72 Hours</button>
                     <button type="button" class="btn btn-ghost" onclick="setRunningQuickDuration('1w')">+1 Week</button>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Score Freeze Time (Optional)</label>
-                    <input type="datetime-local" name="score_freeze_time" class="form-input" value="${config.score_freeze_time ? config.score_freeze_time.slice(0,16) : ''}">
-                    <small class="text-muted">Scoreboard freezes at this time — scores are still recorded but hidden from the public scoreboard.</small>
-                    ${config.score_freeze_time ? `
-                        <div style="margin-top: 0.75rem; padding: 0.75rem 1rem; border-radius: 8px; display: flex; align-items: center; gap: 0.5rem; ${new Date() > new Date(config.score_freeze_time) ? 'background: rgba(100,149,237,0.15); border: 1px solid #6495ed;' : 'background: rgba(255,165,2,0.1); border: 1px solid rgba(255,165,2,0.3);'}">
-                            <span style="font-size: 1.2rem;">${new Date() > new Date(config.score_freeze_time) ? '❄️' : '⏳'}</span>
-                            <span style="color: ${new Date() > new Date(config.score_freeze_time) ? '#6495ed' : '#ffa502'}; font-weight: 600; font-size: 0.85rem;">
-                                ${new Date() > new Date(config.score_freeze_time) ? 'Scoreboard is FROZEN since ' + formatDateTime(config.score_freeze_time) : 'Scoreboard will freeze at ' + formatDateTime(config.score_freeze_time)}
-                            </span>
-                            <button type="button" class="btn btn-ghost" style="margin-left: auto; font-size: 0.75rem; padding: 0.25rem 0.5rem;" onclick="document.querySelector('[name=score_freeze_time]').value=''; saveRunningEndTime();">✕ Clear</button>
+                <div class="form-group" style="margin-top: 0.5rem;">
+                    <label class="form-label">❄️ Score Freeze Period (Optional)</label>
+                    <small class="text-muted" style="display: block; margin-bottom: 0.75rem;">Freeze the scoreboard during a time window. Scores are still recorded in the background but hidden from the public scoreboard during this period.</small>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div>
+                            <label class="form-label" style="font-size: 0.8rem; color: var(--text-muted);">Freeze From</label>
+                            <input type="datetime-local" name="score_freeze_from" class="form-input" value="${(config.score_freeze_from || config.score_freeze_time || '') ? (config.score_freeze_from || config.score_freeze_time).slice(0,16) : ''}">
                         </div>
-                    ` : ''}
+                        <div>
+                            <label class="form-label" style="font-size: 0.8rem; color: var(--text-muted);">Freeze Until</label>
+                            <input type="datetime-local" name="score_freeze_to" class="form-input" value="${config.score_freeze_to ? config.score_freeze_to.slice(0,16) : ''}">
+                            <small class="text-muted">Leave empty to freeze until manually cleared</small>
+                        </div>
+                    </div>
+                    ${(() => {
+                        const ff = config.score_freeze_from || config.score_freeze_time || '';
+                        const ft = config.score_freeze_to || '';
+                        if (!ff) return '';
+                        const now = new Date();
+                        const from = new Date(ff);
+                        const to = ft ? new Date(ft) : null;
+                        const isActive = to ? now >= from && now <= to : now >= from;
+                        const isPast = to && now > to;
+                        const isFuture = now < from;
+                        let icon, color, bg, msg;
+                        if (isActive) {
+                            icon = '❄️'; color = '#6495ed'; bg = 'rgba(100,149,237,0.15)';
+                            msg = 'Scoreboard is FROZEN' + (to ? ' until ' + formatDateTime(ft) : ' (no end time set)');
+                        } else if (isPast) {
+                            icon = '✅'; color = '#2ed573'; bg = 'rgba(46,213,115,0.1)';
+                            msg = 'Freeze period ended at ' + formatDateTime(ft);
+                        } else {
+                            icon = '⏳'; color = '#ffa502'; bg = 'rgba(255,165,2,0.1)';
+                            msg = 'Scoreboard will freeze from ' + formatDateTime(ff) + (to ? ' to ' + formatDateTime(ft) : '');
+                        }
+                        return '<div style="margin-top: 0.75rem; padding: 0.75rem 1rem; border-radius: 8px; display: flex; align-items: center; gap: 0.5rem; background: ' + bg + '; border: 1px solid ' + color + '40;">' +
+                            '<span style="font-size: 1.2rem;">' + icon + '</span>' +
+                            '<span style="color: ' + color + '; font-weight: 600; font-size: 0.85rem;">' + msg + '</span>' +
+                            '<button type="button" class="btn btn-ghost" style="margin-left: auto; font-size: 0.75rem; padding: 0.25rem 0.5rem;" onclick="clearScoreFreeze()">✕ Clear</button>' +
+                            '</div>';
+                    })()}
                 </div>
                 <button type="button" class="btn btn-primary" onclick="saveRunningEndTime()">💾 Save End Time</button>
             </form>
@@ -4400,13 +4428,16 @@ function setRunningQuickDuration(preset) {
 
 async function saveRunningEndTime() {
     const endInput = document.querySelector('[name="ctf_end"]');
-    const freezeInput = document.querySelector('[name="score_freeze_time"]');
+    const freezeFromInput = document.querySelector('[name="score_freeze_from"]');
+    const freezeToInput = document.querySelector('[name="score_freeze_to"]');
     if (!endInput) return;
     
     try {
         const settings = {
             ctf_end: endInput.value ? new Date(endInput.value).toISOString() : '',
-            score_freeze_time: freezeInput && freezeInput.value ? new Date(freezeInput.value).toISOString() : ''
+            score_freeze_from: freezeFromInput && freezeFromInput.value ? new Date(freezeFromInput.value).toISOString() : '',
+            score_freeze_to: freezeToInput && freezeToInput.value ? new Date(freezeToInput.value).toISOString() : '',
+            score_freeze_time: freezeFromInput && freezeFromInput.value ? new Date(freezeFromInput.value).toISOString() : ''
         };
         
         await api('/admin/config/bulk', {
@@ -4415,6 +4446,20 @@ async function saveRunningEndTime() {
         });
         await loadSiteConfig();
         showToast('Event end time saved!', 'success');
+        loadAdminSection('running-timer');
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+}
+
+async function clearScoreFreeze() {
+    try {
+        await api('/admin/config/bulk', {
+            method: 'PUT',
+            body: { settings: { score_freeze_from: '', score_freeze_to: '', score_freeze_time: '' } }
+        });
+        await loadSiteConfig();
+        showToast('Score freeze cleared!', 'success');
         loadAdminSection('running-timer');
     } catch (err) {
         showToast(err.message, 'error');
@@ -5102,7 +5147,8 @@ async function saveTimingConfig(e) {
                 settings: {
                     ctf_start: form.ctf_start.value ? new Date(form.ctf_start.value).toISOString() : '',
                     ctf_end: form.ctf_end.value ? new Date(form.ctf_end.value).toISOString() : '',
-                    score_freeze_time: form.score_freeze_time.value ? new Date(form.score_freeze_time.value).toISOString() : ''
+                    score_freeze_from: form.score_freeze_time?.value ? new Date(form.score_freeze_time.value).toISOString() : '',
+                    score_freeze_time: form.score_freeze_time?.value ? new Date(form.score_freeze_time.value).toISOString() : ''
                 }
             }
         });

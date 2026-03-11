@@ -31,11 +31,23 @@ function checkScoreboardEnabled(req, res, next) {
     next();
 }
 
-// Get frozen score time
+// Get frozen score data (supports both old single field and new from/to fields)
 function getScoreFreezeData(db) {
-    const freezeConfig = db.prepare('SELECT value FROM config WHERE key = ?').get('score_freeze_time');
-    const isFrozen = freezeConfig?.value && new Date() > new Date(freezeConfig.value);
-    return { isFrozen, freezeTime: freezeConfig?.value || null };
+    const rows = db.prepare('SELECT key, value FROM config WHERE key IN (?, ?, ?)').all('score_freeze_time', 'score_freeze_from', 'score_freeze_to');
+    const cfg = {};
+    rows.forEach(r => cfg[r.key] = r.value);
+    
+    const freezeFrom = cfg.score_freeze_from || cfg.score_freeze_time || null;
+    const freezeTo = cfg.score_freeze_to || null;
+    
+    if (!freezeFrom) return { isFrozen: false, freezeTime: null, freezeFrom: null, freezeTo: null };
+    
+    const now = new Date();
+    const start = new Date(freezeFrom);
+    const end = freezeTo ? new Date(freezeTo) : null;
+    const isFrozen = end ? now >= start && now <= end : now >= start;
+    
+    return { isFrozen, freezeTime: freezeFrom, freezeFrom, freezeTo };
 }
 
 // Get scoreboard
@@ -46,10 +58,10 @@ router.get('/', checkScoreboardEnabled, checkScoreVisibility, (req, res) => {
     const limit = 20;
     const offset = (page - 1) * limit;
     
-    const { isFrozen, freezeTime } = getScoreFreezeData(db);
+    const { isFrozen, freezeTime, freezeFrom, freezeTo } = getScoreFreezeData(db);
     
     // If scores are frozen, show scores as of freeze time
-    const scoreClause = isFrozen 
+    const scoreClause = isFrozen
         ? `(SELECT COALESCE(SUM(c.points), 0) FROM submissions s 
             JOIN challenges c ON s.challenge_id = c.id 
             WHERE s.user_id = u.id AND s.is_correct = 1 AND s.submitted_at < ?)` 
@@ -96,7 +108,9 @@ router.get('/', checkScoreboardEnabled, checkScoreVisibility, (req, res) => {
                 pages: Math.ceil(total.count / limit)
             },
             frozen: isFrozen,
-            freeze_time: freezeTime
+            freeze_time: freezeTime,
+            freeze_from: freezeFrom || null,
+            freeze_to: freezeTo || null
         });
     }
     
@@ -142,7 +156,9 @@ router.get('/', checkScoreboardEnabled, checkScoreVisibility, (req, res) => {
             pages: Math.ceil(total.count / limit)
         },
         frozen: isFrozen,
-        freeze_time: freezeTime
+        freeze_time: freezeTime,
+        freeze_from: freezeFrom || null,
+        freeze_to: freezeTo || null
     });
 });
 

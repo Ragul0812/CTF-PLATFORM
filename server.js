@@ -138,14 +138,20 @@ app.get('/api/notifications/user', (req, res) => {
 app.get('/api/status', (req, res) => {
     const database = db.getDb();
     const config = {};
-    database.prepare('SELECT * FROM config WHERE key IN (?, ?, ?)').all('ctf_start', 'ctf_end', 'score_freeze_time').forEach(c => {
+    database.prepare('SELECT * FROM config WHERE key IN (?, ?, ?, ?, ?)').all('ctf_start', 'ctf_end', 'score_freeze_time', 'score_freeze_from', 'score_freeze_to').forEach(c => {
         config[c.key] = c.value;
     });
     
     const now = new Date();
     const start = config.ctf_start ? new Date(config.ctf_start) : null;
     const end = config.ctf_end ? new Date(config.ctf_end) : null;
-    const freeze = config.score_freeze_time ? new Date(config.score_freeze_time) : null;
+    
+    // Support both old single field and new from/to fields
+    const freezeFrom = config.score_freeze_from || config.score_freeze_time || null;
+    const freezeTo = config.score_freeze_to || null;
+    const freezeStart = freezeFrom ? new Date(freezeFrom) : null;
+    const freezeEnd = freezeTo ? new Date(freezeTo) : null;
+    const scoresFrozen = freezeStart ? (freezeEnd ? now >= freezeStart && now <= freezeEnd : now >= freezeStart) : false;
     
     let status = 'running';
     if (start && now < start) status = 'upcoming';
@@ -155,8 +161,10 @@ app.get('/api/status', (req, res) => {
         status,
         starts_at: config.ctf_start || null,
         ends_at: config.ctf_end || null,
-        scores_frozen: freeze ? now > freeze : false,
-        freeze_time: config.score_freeze_time || null,
+        scores_frozen: scoresFrozen,
+        freeze_from: freezeFrom || null,
+        freeze_to: freezeTo || null,
+        freeze_time: freezeFrom || null,
         server_time: now.toISOString()
     });
 });

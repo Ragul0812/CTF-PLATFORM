@@ -250,9 +250,13 @@ router.post('/:id/submit', checkBanned, isAuthenticated, flagLimiter, checkCTFAc
         `).run(userId, challengeId);
     }
     
-    // Check if score is frozen
-    const freezeConfig = db.prepare('SELECT value FROM config WHERE key = ?').get('score_freeze_time');
-    const isFrozen = freezeConfig?.value && new Date() > new Date(freezeConfig.value);
+    // Check if score is frozen (supports both old single field and new from/to fields)
+    const freezeRows = {};
+    db.prepare('SELECT key, value FROM config WHERE key IN (?, ?, ?)').all('score_freeze_time', 'score_freeze_from', 'score_freeze_to').forEach(r => freezeRows[r.key] = r.value);
+    const freezeFrom = freezeRows.score_freeze_from || freezeRows.score_freeze_time || null;
+    const freezeTo = freezeRows.score_freeze_to || null;
+    const now = new Date();
+    const isFrozen = freezeFrom ? (freezeTo ? now >= new Date(freezeFrom) && now <= new Date(freezeTo) : now >= new Date(freezeFrom)) : false;
     
     const isCorrect = flag.trim() === challenge.flag;
     

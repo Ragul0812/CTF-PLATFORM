@@ -237,6 +237,8 @@ function initialize() {
             // Scoring
             'score_visibility': 'public',
             'score_freeze_time': '',
+            'score_freeze_from': '',
+            'score_freeze_to': '',
             'tie_breaker': 'time',
             
             // Theme
