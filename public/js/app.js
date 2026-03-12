@@ -1759,7 +1759,7 @@ async function renderUserProfile(container, id) {
                         </div>
                         <div class="profile-stat-box">
                             <div class="profile-stat-icon">📅</div>
-                            <div class="profile-stat-value">${new Date(u.created_at).toLocaleDateString()}</div>
+                            <div class="profile-stat-value">${parseUTCDate(u.created_at)?.toLocaleDateString() || new Date(u.created_at).toLocaleDateString()}</div>
                             <div class="profile-stat-label">Joined</div>
                         </div>
                     </div>
@@ -1891,7 +1891,7 @@ function renderScoreChart(timeline) {
         
         // X-axis time labels at intervals
         if (i % labelInterval === 0 || i === timeline.length - 1) {
-            const d = new Date(t.time || t.submitted_at);
+            const d = parseUTCDate(t.time || t.submitted_at) || new Date(t.time || t.submitted_at);
             const label = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
             const dateLabel = `${d.getMonth()+1}/${d.getDate()}`;
             svg += `<text x="${x}" y="${padTop + plotH + 16}" text-anchor="middle" fill="var(--text-muted)" font-size="9">${label}</text>`;
@@ -2209,7 +2209,7 @@ async function renderTeamProfile(container, id) {
                             <h1 class="profile-username">${escapeHtml(t.name)}</h1>
                             <div class="profile-badges">
                                 <span class="badge badge-info">👥 ${data.members.length} Members</span>
-                                <span class="badge badge-secondary">Created ${new Date(t.created_at).toLocaleDateString()}</span>
+                                <span class="badge badge-secondary">Created ${parseUTCDate(t.created_at)?.toLocaleDateString() || new Date(t.created_at).toLocaleDateString()}</span>
                             </div>
                             <p class="text-secondary">Captain: <strong>${escapeHtml(t.captain_name)}</strong> 👑</p>
                         </div>
@@ -6355,7 +6355,7 @@ function injectCustomCode(container, code) {
 }
 
 function formatDate(date) {
-    return new Date(date).toLocaleString();
+    return parseUTCDate(date)?.toLocaleString() || new Date(date).toLocaleString();
 }
 
 // Convert an ISO/UTC date string to local datetime-local input format (YYYY-MM-DDTHH:MM)
