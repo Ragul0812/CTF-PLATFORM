@@ -47,7 +47,10 @@ function getScoreFreezeData(db) {
     const end = freezeTo ? new Date(freezeTo) : null;
     const isFrozen = end ? now >= start && now <= end : now >= start;
     
-    return { isFrozen, freezeTime: freezeFrom, freezeFrom, freezeTo };
+    // Convert to SQLite datetime format for SQL comparisons (YYYY-MM-DD HH:MM:SS)
+    const sqlFreezeTime = start.toISOString().replace('T', ' ').replace(/\.\d+Z$/, '');
+    
+    return { isFrozen, freezeTime: sqlFreezeTime, freezeFrom, freezeTo };
 }
 
 // Get scoreboard
