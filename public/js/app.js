@@ -3807,7 +3807,7 @@ async function renderAdminOpeningTimer(content) {
             <form id="start-time-form">
                 <div class="form-group">
                     <label class="form-label">Set Start Time</label>
-                    <input type="datetime-local" name="ctf_start" class="form-input" value="${config.ctf_start ? config.ctf_start.slice(0,16) : ''}" style="font-size: 1.1rem; padding: 0.75rem;">
+                    <input type="datetime-local" name="ctf_start" class="form-input" value="${config.ctf_start ? toLocalDatetimeInput(config.ctf_start) : ''}" style="font-size: 1.1rem; padding: 0.75rem;">
                     <small class="text-muted">The opening page with countdown timer shows until this time.</small>
                 </div>
                 <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap;">
@@ -4182,7 +4182,7 @@ async function renderAdminRunningTimer(content) {
             <form id="end-time-form">
                 <div class="form-group">
                     <label class="form-label">Set End Time</label>
-                    <input type="datetime-local" name="ctf_end" class="form-input" value="${config.ctf_end ? config.ctf_end.slice(0,16) : ''}" style="font-size: 1.1rem; padding: 0.75rem;">
+                    <input type="datetime-local" name="ctf_end" class="form-input" value="${config.ctf_end ? toLocalDatetimeInput(config.ctf_end) : ''}" style="font-size: 1.1rem; padding: 0.75rem;">
                     <small class="text-muted">Challenges auto-hide when this time passes. The ending page shows after this.</small>
                 </div>
                 <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap;">
@@ -4206,11 +4206,11 @@ async function renderAdminRunningTimer(content) {
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                     <div>
                         <label class="form-label" style="font-size: 0.85rem;">Freeze From</label>
-                        <input type="datetime-local" name="score_freeze_from" class="form-input" value="${(config.score_freeze_from || config.score_freeze_time || '') ? (config.score_freeze_from || config.score_freeze_time).slice(0,16) : ''}">
+                        <input type="datetime-local" name="score_freeze_from" class="form-input" value="${toLocalDatetimeInput(config.score_freeze_from || config.score_freeze_time || '')}">
                     </div>
                     <div>
                         <label class="form-label" style="font-size: 0.85rem;">Freeze Until</label>
-                        <input type="datetime-local" name="score_freeze_to" class="form-input" value="${config.score_freeze_to ? config.score_freeze_to.slice(0,16) : ''}">
+                        <input type="datetime-local" name="score_freeze_to" class="form-input" value="${toLocalDatetimeInput(config.score_freeze_to || '')}">
                         <small class="text-muted">Leave empty to freeze until manually cleared</small>
                     </div>
                 </div>
@@ -4485,14 +4485,14 @@ async function saveScoreFreeze() {
 function setFreezeQuickTime(preset) {
     const fromInput = document.querySelector('[name="score_freeze_from"]');
     if (!fromInput) return;
+    let target;
     if (preset === 'now') {
-        const now = new Date();
-        fromInput.value = now.toISOString().slice(0, 16);
+        target = new Date();
     } else {
         const mins = { '30m': 30, '1h': 60, '2h': 120 }[preset] || 0;
-        const t = new Date(Date.now() + mins * 60000);
-        fromInput.value = t.toISOString().slice(0, 16);
+        target = new Date(Date.now() + mins * 60000);
     }
+    fromInput.value = toLocalDatetimeInput(target.toISOString());
 }
 
 async function clearScoreFreeze() {
@@ -5221,7 +5221,7 @@ function setQuickTime(field, offset) {
     }
     
     // Format for datetime-local input
-    const formatted = date.toISOString().slice(0, 16);
+    const formatted = toLocalDatetimeInput(date.toISOString());
     input.value = formatted;
     updateTimingPreview();
 }
@@ -5238,7 +5238,7 @@ function setQuickDuration(duration) {
         // If no start time, use now
         startDate = new Date();
         startDate.setMinutes(Math.ceil(startDate.getMinutes() / 5) * 5, 0, 0);
-        startInput.value = startDate.toISOString().slice(0, 16);
+        startInput.value = toLocalDatetimeInput(startDate.toISOString());
     }
     
     let endDate = new Date(startDate);
@@ -5246,7 +5246,7 @@ function setQuickDuration(duration) {
     else if (duration === '48h') endDate.setHours(endDate.getHours() + 48);
     else if (duration === '72h') endDate.setHours(endDate.getHours() + 72);
     
-    endInput.value = endDate.toISOString().slice(0, 16);
+    endInput.value = toLocalDatetimeInput(endDate.toISOString());
     updateTimingPreview();
 }
 
@@ -6356,6 +6356,19 @@ function injectCustomCode(container, code) {
 
 function formatDate(date) {
     return new Date(date).toLocaleString();
+}
+
+// Convert an ISO/UTC date string to local datetime-local input format (YYYY-MM-DDTHH:MM)
+function toLocalDatetimeInput(isoStr) {
+    if (!isoStr) return '';
+    const d = new Date(isoStr);
+    if (isNaN(d.getTime())) return '';
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
 function renderPagination(pagination, onClickFn) {
