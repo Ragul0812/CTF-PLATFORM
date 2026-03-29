@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 8080;
 const HOST = process.env.HOST || '0.0.0.0'; // Listen on all network interfaces
 
 // Trust proxy (for rate limiting behind reverse proxy)
-app.set('trust proxy', 1);
+app.set('trust proxy', true);
 
 // Enable gzip compression for better performance
 app.use(compression());

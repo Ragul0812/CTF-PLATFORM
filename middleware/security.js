@@ -8,19 +8,21 @@ const apiLimiter = rateLimit({
     message: { error: 'Too many requests, please slow down' },
     standardHeaders: true,
     legacyHeaders: false,
+    validate: { trustProxy: false }, // Disable validation for trust proxy
     skip: (req) => {
         // Skip for admins
         return req.session?.user?.is_admin;
     }
 });
 
-// Strict limiter for auth endpoints
+// Strict limiter for auth endpoints (per IP - only blocks abusive IP, not others)
 const authLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 10, // 10 attempts
-    message: { error: 'Too many login attempts, please try again later' },
+    windowMs: 60 * 1000, // 1 minute window (short to prevent DDoS)
+    max: 60, // 60 attempts per minute per IP (enough for ~30 users, blocks spam)
+    message: { error: 'Too many login attempts from this IP, please try again later' },
     standardHeaders: true,
-    legacyHeaders: false
+    legacyHeaders: false,
+    validate: { trustProxy: false } // Disable validation for trust proxy
 });
 
 // Flag submission limiter (per user, per challenge)
@@ -33,11 +35,12 @@ const flagLimiter = rateLimit({
     }
 });
 
-// Registration limiter
+// Registration limiter (per IP - only blocks abusive IP, not others)
 const registerLimiter = rateLimit({
-    windowMs: 60 * 60 * 1000, // 1 hour
-    max: 10, // 10 registrations per hour per IP
-    message: { error: 'Too many accounts created, please try again later' }
+    windowMs: 60 * 1000, // 1 minute window (short to prevent DDoS)
+    max: 30, // 30 registrations per minute per IP (enough for classroom, blocks spam)
+    message: { error: 'Too many accounts created from this IP, please try again later' },
+    validate: { trustProxy: false } // Disable validation for trust proxy
 });
 
 // Bruteforce protection - track failed attempts
